@@ -72,7 +72,12 @@ trait Solver extends GameDef {
       }
     )
 
-    nextPaths #::: from(nextPaths, explored ++ nextPaths.map(_._1))
+    if (nextPaths == Stream.Empty) {
+      nextPaths
+    }
+    else {
+      nextPaths #::: from(nextPaths, explored ++ nextPaths.map(_._1))
+    }
   }
 
   /**
@@ -99,5 +104,8 @@ trait Solver extends GameDef {
    * the first move that the player should perform from the starting
    * position.
    */
-  lazy val solution: List[Move] = pathsToGoal(0)._2
+  lazy val solution: List[Move] = pathsToGoal match {
+    case Stream.Empty => List()
+    case solution #:: otherSolutions => solution._2
+  }
 }
