@@ -90,4 +90,26 @@ class SpreadsheetCalculatorSuite extends FunSuite with ShouldMatchers {
     assert(results("b").apply() === 1.0)
   }
 
+  test("computeValues cyclic dependencies result in NaN") {
+    val references = Map[String, Signal[Expr]](
+      "a" -> Var(Ref("b")),
+      "b" -> Var(Ref("a"))
+    )
+
+    val results = Calculator.computeValues(references)
+    assert(results("a").apply().equals(Double.NaN))
+    assert(results("b").apply().equals(Double.NaN))
+  }
+
+  test("computeValues cyclic dependencies in a subexpression result in NaN") {
+    val references = Map[String, Signal[Expr]](
+      "a" -> Var(Ref("b")),
+      "b" -> Var(Plus(Ref("a"), Literal(1.0)))
+    )
+
+    val results = Calculator.computeValues(references)
+    assert(results("a").apply().equals(Double.NaN))
+    assert(results("b").apply().equals(Double.NaN))
+  }
+
 }

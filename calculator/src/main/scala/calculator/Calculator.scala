@@ -18,28 +18,31 @@ object Calculator {
     }
   }
 
-  def eval(expr: Expr, references: Map[String, Signal[Expr]]): Double = {
+  def eval(expr: Expr, references: Map[String, Signal[Expr]], variableNamesSeen: Set[String] = Set()): Double = {
     expr match {
       case literal: Literal => literal.v
       case reference: Ref => {
-        if (references.contains(reference.name)) {
-          eval(references(reference.name).apply(), references)
+        if (variableNamesSeen.contains(reference.name)) {
+          Double.NaN
+        }
+        else if (references.contains(reference.name)) {
+          eval(references(reference.name).apply(), references, variableNamesSeen + reference.name)
         }
         else {
           Double.NaN
         }
       }
-      case plus: Plus => eval(plus.a, references) + eval(plus.b, references)
-      case minus: Minus => eval(minus.a, references) - eval(minus.b, references)
-      case times: Times => eval(times.a, references) * eval(times.b, references)
+      case plus: Plus => eval(plus.a, references, variableNamesSeen) + eval(plus.b, references, variableNamesSeen)
+      case minus: Minus => eval(minus.a, references, variableNamesSeen) - eval(minus.b, references, variableNamesSeen)
+      case times: Times => eval(times.a, references, variableNamesSeen) * eval(times.b, references, variableNamesSeen)
       case divide: Divide => {
-        val denominator = eval(divide.b, references)
+        val denominator = eval(divide.b, references, variableNamesSeen)
 
         if (denominator == 0.0) {
           Double.NaN
         }
         else {
-          eval(divide.a, references) / denominator
+          eval(divide.a, references, variableNamesSeen) / denominator
         }
       }
     }
