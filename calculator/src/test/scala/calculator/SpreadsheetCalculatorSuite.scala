@@ -63,4 +63,31 @@ class SpreadsheetCalculatorSuite extends FunSuite with ShouldMatchers {
     assert(Calculator.eval(expression, references) === 1.0)
   }
 
+  test("eval referencing an undefined variable is NaN") {
+    val expression = Ref("a")
+    val references = Map[String, Signal[Expr]]()
+
+    assert(Calculator.eval(expression, references).equals(Double.NaN))
+  }
+
+  test("computeValues with a single reference to a literal") {
+    val references = Map[String, Signal[Expr]](
+      "a" -> Var(Literal(1.0))
+    )
+
+    val results = Calculator.computeValues(references)
+    assert(results("a").apply() === 1.0)
+  }
+
+  test("computeValues with a reference to another") {
+    val references = Map[String, Signal[Expr]](
+      "a" -> Var(Ref("b")),
+      "b" -> Var(Literal(1.0))
+    )
+
+    val results = Calculator.computeValues(references)
+    assert(results("a").apply() === 1.0)
+    assert(results("b").apply() === 1.0)
+  }
+
 }
